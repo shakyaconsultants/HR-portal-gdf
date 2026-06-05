@@ -2,7 +2,7 @@ import { readFile } from "fs/promises";
 import path from "path";
 import QRCode from "qrcode";
 import { PDFDocument, PDFPage, PDFFont, rgb, StandardFonts } from "pdf-lib";
-import { appApiUrl } from "@/lib/app-url";
+import { publicAppPath } from "@/lib/app-url";
 import { COMPANY } from "@/lib/company";
 import { readStoredFileBuffer } from "@/lib/file-storage";
 
@@ -479,7 +479,7 @@ export async function generateIdCardPdf(input: IdCardPdfInput): Promise<Uint8Arr
 
   const verifyUrl =
     input.verificationUrl ??
-    appApiUrl(`/api/employees/verify?code=${encodeURIComponent(input.employeeId)}`);
+    publicAppPath(`/api/employees/verify?code=${encodeURIComponent(input.employeeId)}`);
 
   const qrFront = await generateQrImage(pdfDoc, verifyUrl, 120);
   const qrBack = await generateQrImage(pdfDoc, verifyUrl, 100);

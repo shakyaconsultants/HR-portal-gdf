@@ -1,8 +1,8 @@
 import { redirect } from "next/navigation";
-import { cookies } from "next/headers";
 import { AppShell } from "@/components/AppShell";
 import { EnterpriseDashboard } from "@/components/enterprise/EnterpriseDashboard";
-import { appApiUrl } from "@/lib/app-url";
+import { getCookieUser, requireRole } from "@/lib/auth";
+import { getDashboardStats } from "@/lib/dashboard-stats";
 import type { HrWorkflowStats } from "@/components/HrWorkflowDashboard";
 
 type DashboardStats = HrWorkflowStats & {
@@ -23,22 +23,12 @@ type DashboardStats = HrWorkflowStats & {
   leadCounts: Record<string, number>;
 };
 
-async function getStats(): Promise<DashboardStats> {
-  const cookieHeader = (await cookies()).toString();
-  const res = await fetch(appApiUrl("/api/dashboard/stats"), {
-    headers: { cookie: cookieHeader },
-    cache: "no-store",
-  });
-  if (!res.ok) {
-    if (res.status === 401) redirect("/");
-    throw new Error("Unable to load dashboard stats");
-  }
-  const json = await res.json();
-  return json.data as DashboardStats;
-}
-
 export default async function DashboardPage() {
-  const stats = await getStats();
+  const user = await getCookieUser();
+  if (!user) redirect("/");
+  if (!requireRole(user.role, ["ADMIN", "HR", "TRAINER"])) redirect("/");
+
+  const stats = (await getDashboardStats()) as DashboardStats;
 
   return (
     <AppShell

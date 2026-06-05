@@ -56,16 +56,22 @@ export async function clearAuthCookie() {
   cookieStore.set(AUTH_COOKIE, "", { ...authCookieOptions, maxAge: 0 });
 }
 
-export async function getRequestUser(request: NextRequest): Promise<AuthPayload | null> {
-  const token = request.cookies.get(AUTH_COOKIE)?.value;
-  if (!token) {
-    return null;
-  }
+async function userFromToken(token: string | undefined): Promise<AuthPayload | null> {
+  if (!token) return null;
   try {
     return await verifyAuthToken(token);
   } catch {
     return null;
   }
+}
+
+export async function getCookieUser(): Promise<AuthPayload | null> {
+  const cookieStore = await cookies();
+  return userFromToken(cookieStore.get(AUTH_COOKIE)?.value);
+}
+
+export async function getRequestUser(request: NextRequest): Promise<AuthPayload | null> {
+  return userFromToken(request.cookies.get(AUTH_COOKIE)?.value);
 }
 
 export function requireRole(role: UserRole, allowedRoles: UserRole[]) {

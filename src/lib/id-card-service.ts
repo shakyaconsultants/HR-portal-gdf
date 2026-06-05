@@ -1,6 +1,6 @@
 import "server-only";
 import { Types } from "mongoose";
-import { appApiUrl } from "@/lib/app-url";
+import { publicAppPathFromRequest } from "@/lib/app-url";
 import { connectDb } from "@/lib/db";
 import { isCommunicationDelivered } from "@/lib/communication-prerequisites";
 import { sendEmail } from "@/lib/email";
@@ -61,6 +61,9 @@ export async function generateAndTransferIdCard(
       : candidate.registrationId ?? `GDF-${candidateId.slice(-6).toUpperCase()}`;
 
   const generatedAt = new Date();
+  const verificationUrl = await publicAppPathFromRequest(
+    `/api/employees/verify?code=${encodeURIComponent(employeeIdLabel)}`
+  );
   const pdfBytes = await generateIdCardPdf({
     fullName: candidate.fullName,
     designation: candidate.designation ?? "",
@@ -72,7 +75,7 @@ export async function generateAndTransferIdCard(
     issueDate: generatedAt.toISOString(),
     emergencyContactName: candidate.fatherName?.trim() || candidate.motherName?.trim() || "",
     emergencyContactPhone: candidate.fatherPhone?.trim() || candidate.motherPhone?.trim() || candidate.phone,
-    verificationUrl: appApiUrl(`/api/employees/verify?code=${encodeURIComponent(employeeIdLabel)}`),
+    verificationUrl,
   });
 
   const fileName = buildIdCardFileName(candidate.registrationId);
