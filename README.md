@@ -1,36 +1,71 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+This is a Next.js monolith for the GDF Trainee Management & Hiring Portal using MongoDB.
 
-## Getting Started
+## Stack
 
-First, run the development server:
+- Next.js App Router (single codebase frontend + backend APIs)
+- MongoDB + Mongoose
+- JWT cookie auth with roles: ADMIN, HR, TRAINER
+- Indexed collections for query optimization
+
+## Features implemented (MVP)
+
+- Candidate registration
+- Verification stage updates
+- Batch creation
+- Candidate batch assignment and transfer history
+- Final mock call evaluation with score calculation
+- Hiring decision updates
+- Candidate timeline API
+- Dashboard metrics
+- Role-based protected endpoints
+
+## Full pipeline coverage
+
+- Registration -> verification -> batch assignment -> training -> final evaluation -> hiring decision
+- Communication logs for letters/instructions
+- Onboarding forms with status
+- Transfer to employee records
+- Pipeline and batch performance reports
+
+## Setup
+
+1. Install dependencies:
+
+```bash
+npm install
+```
+
+2. Copy env file and update values:
+
+```bash
+cp .env.example .env.local
+```
+
+3. Run dev server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+4. Open `http://localhost:3000`
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+If login returns 500, verify `.env.local` has valid values (especially `MONGODB_URI` and `JWT_SECRET`).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Create portal users (one-time)
 
-## Learn More
+Credentials are **not** hardcoded. Configure seed accounts in `.env.local` (see `.env.example`), then run:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+# Set SEED_USERS_ENABLED=true and SEED_ADMIN_EMAIL/PASSWORD (etc.) in .env.local first
+npm run seed:users
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Optional overrides: copy `scripts/.env.seed.example` to `scripts/.env.seed` (gitignored).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Query optimization strategy
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Compound indexes on frequent filters (`status`, `verificationStage`, `batchId`, timestamps)
+- Text index for candidate search by name/email/phone
+- Projection in list APIs (return only required fields)
+- Pagination and bounded page size
+- Parallelized dashboard `countDocuments` calls
